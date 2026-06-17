@@ -48,6 +48,22 @@
         <p id="toastMessage" class="text-sm font-semibold"></p>
     </div>
 
+    <!-- MODAL POP-UP DIALOG KUSTOM (PENGGANTI CONFIRM & ALERT BROWSER) -->
+    <div id="modalDialogKustom" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-gray-100 text-center space-y-4 transform scale-95 transition-transform duration-200">
+            <div id="dialogKustomIconBox" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl">
+                <i id="dialogKustomIcon" class="fa-solid"></i>
+            </div>
+            <div>
+                <h3 id="dialogKustomTitle" class="text-base font-black text-gray-800">Pemberitahuan</h3>
+                <p id="dialogKustomMessage" class="text-xs text-gray-500 mt-1.5 leading-relaxed"></p>
+            </div>
+            <div id="dialogKustomActionBox" class="flex gap-3 pt-2">
+                <!-- Tombol dinamis diatur via JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <!-- AREA HALAMAN APLIKASI -->
     <main class="flex-grow flex flex-col max-w-md w-full mx-auto bg-white shadow-lg relative min-h-screen pb-20">
 
@@ -406,6 +422,52 @@
             }, 3500);
         }
 
+        // --- ENGINE SISTEM MODAL DIALOG KUSTOM (PENGGANTI CONFIRM & ALERT BROWSER) ---
+        function tampilkanDialogKustom(opsi) {
+            const modal = document.getElementById("modalDialogKustom");
+            const iconBox = document.getElementById("dialogKustomIconBox");
+            const icon = document.getElementById("dialogKustomIcon");
+            const title = document.getElementById("dialogKustomTitle");
+            const message = document.getElementById("dialogKustomMessage");
+            const actionBox = document.getElementById("dialogKustomActionBox");
+
+            title.innerText = opsi.title || "Pemberitahuan";
+            message.innerText = opsi.message || "";
+            actionBox.innerHTML = "";
+
+            if (opsi.type === "danger") {
+                iconBox.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl bg-rose-100 text-rose-600";
+                icon.className = "fa-solid fa-triangle-exclamation";
+            } else if (opsi.type === "warning") {
+                iconBox.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl bg-amber-100 text-amber-600";
+                icon.className = "fa-solid fa-circle-exclamation";
+            } else {
+                iconBox.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl bg-blue-100 text-blue-600";
+                icon.className = "fa-solid fa-circle-info";
+            }
+
+            if (opsi.buttons && opsi.buttons.length > 0) {
+                opsi.buttons.forEach(btn => {
+                    const button = document.createElement("button");
+                    button.innerText = btn.text;
+                    button.className = btn.className || "flex-1 py-2 text-xs font-bold rounded-xl transition";
+                    button.addEventListener("click", () => {
+                        modal.classList.add("hidden");
+                        if (btn.action) btn.action();
+                    });
+                    actionBox.appendChild(button);
+                });
+            } else {
+                const btnTutup = document.createElement("button");
+                btnTutup.innerText = "OK";
+                btnTutup.className = "flex-1 bg-blue-900 hover:bg-blue-800 text-white py-2 text-xs font-bold rounded-xl transition";
+                btnTutup.addEventListener("click", () => modal.classList.add("hidden"));
+                actionBox.appendChild(btnTutup);
+            }
+
+            modal.classList.remove("hidden");
+        }
+
         // --- MODAL CONTROLLER ---
         function bukaModalTransaksi(jenis, editId = null, dataLama = null) {
             document.getElementById("txJenis").value = jenis;
@@ -432,6 +494,7 @@
             setTimeout(() => content.classList.remove("translate-y-full"), 50);
         }
 
+        // Tampilkan urutan kronologis seperti m-banking (Data paling baru di posisi paling bawah)
         function tutupModalTransaksi() {
             const content = document.getElementById("modalContent");
             content.classList.add("translate-y-full");
@@ -494,10 +557,26 @@
                     }
                 } else {
                     if(hasil.isLocked) {
-                        // Akun terkunci karena status pending, arahkan bayar sewa aplikasi ke WA Pak Sumer
+                        // Memanggil custom alert dialog yang indah (Bukan bawaan browser) untuk aktivasi akun
                         let msgWA = `Halo Admin 3D Creative, saya mau aktivasi pendaftaran sewa akun aplikasi Catat Kas untuk Email: ${email}. Tolong infokan nomor rekening pembayaran.`;
-                        alert(hasil.message);
-                        window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msgWA)}`, '_blank');
+                        tampilkanDialogKustom({
+                            title: "Aktivasi Akun Diperlukan",
+                            message: hasil.message || "Akun Anda belum aktif. Silakan hubungi admin 3D Creative untuk mengaktifkan akun Anda.",
+                            type: "warning",
+                            buttons: [
+                                {
+                                    text: "Batal",
+                                    className: "flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 text-xs font-bold rounded-xl transition"
+                                },
+                                {
+                                    text: "Hubungi Admin",
+                                    className: "flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 text-xs font-bold rounded-xl transition shadow-md",
+                                    action: () => {
+                                        window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msgWA)}`, '_blank');
+                                    }
+                                }
+                            ]
+                        });
                     } else {
                         tunjukanToast(hasil.message, "error");
                     }
@@ -529,7 +608,7 @@
                     tunjukanToast(hasil.message, "success");
                     cekAlurAplikasiLanjutan();
                 } else {
-                    alert(hasil.message);
+                    tampilkanDialogKustom({ title: "Koneksi Gagal", message: hasil.message, type: "danger" });
                 }
             } catch (err) {
                 setSkrinLoading(false);
@@ -554,13 +633,28 @@
             }
         }
 
-        // Logout Akun
+        // Logout Akun menggunakan Dialog CatatKas Kustom
         document.getElementById("btnLogout").addEventListener("click", () => {
-            if(confirm("Apakah Anda yakin ingin keluar aplikasi?")) {
-                localStorage.removeItem("catatkas_session");
-                sessionUser = null;
-                cekAlurAplikasiLanjutan();
-            }
+            tampilkanDialogKustom({
+                title: "Keluar Aplikasi",
+                message: "Apakah Anda yakin ingin keluar dari aplikasi Catat Kas?",
+                type: "warning",
+                buttons: [
+                    {
+                        text: "Batal",
+                        className: "flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 text-xs font-bold rounded-xl transition"
+                    },
+                    {
+                        text: "Ya, Keluar",
+                        className: "flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2 text-xs font-bold rounded-xl transition shadow-sm",
+                        action: () => {
+                            localStorage.removeItem("catatkas_session");
+                            sessionUser = null;
+                            cekAlurAplikasiLanjutan();
+                        }
+                    }
+                ]
+            });
         });
 
         // Simpan Transaksi Baru atau Hasil Edit
@@ -632,8 +726,8 @@
                     // Tampilkan total saldo akhir global sepanjang waktu
                     document.getElementById("txtTotalSaldo").innerText = "Rp " + Number(hasil.ringkasan.saldoAkhirGlobal).toLocaleString("id-ID");
                     
-                    // Render list histori hari ini (Terbaru di atas)
-                    let dataHariIni = hasil.mutasi.reverse();
+                    // Render list histori hari ini (Kronologis M-Banking: Catatan terakhir/paling baru di bawah)
+                    let dataHariIni = hasil.mutasi; // Biarkan berurutan dari terlama ke terbaru (Terbaru di bawah)
                     if(dataHariIni.length === 0) {
                         boxHistori.innerHTML = `<p class="text-xs text-gray-400 py-10">Belum ada transaksi keluar masuk dicatat hari ini.</p>`;
                     } else {
@@ -691,8 +785,8 @@
                     document.getElementById("txtTotalMutasiKeluar").innerText = "Rp " + Number(hasil.ringkasan.totalKeluar).toLocaleString("id-ID");
 
                     let boxTabel = document.getElementById("containerTabelMutasi");
-                    // Tampilkan urutan terbalik (terbaru paling atas)
-                    let mutasiUrut = [...dataMutasiCache].reverse();
+                    // Tampilkan urutan m-banking konvensional (Terlama di atas, terbaru di paling bawah)
+                    let mutasiUrut = [...dataMutasiCache]; 
 
                     if(mutasiUrut.length === 0) {
                         boxTabel.innerHTML = `<p class="text-center text-xs text-gray-400 py-10">Tidak ditemukan transaksi pada rentang tanggal ini.</p>`;
@@ -741,34 +835,55 @@
             }
         }
 
-        // Trigger Hapus dari Baris Mutasi
-        async function aksiAplikasiHapus(id) {
-            if(!confirm("Apakah Anda yakin ingin menghapus catatan transaksi ini dari Google Sheets selamanya? Data tidak bisa dikembalikan.")) return;
+        // Trigger Hapus dari Baris Mutasi via Dialog Kustom
+        function aksiAplikasiHapus(id) {
+            tampilkanDialogKustom({
+                title: "Hapus Catatan",
+                message: "Apakah Anda yakin ingin menghapus catatan transaksi ini dari Google Sheets selamanya? Data tidak bisa dikembalikan.",
+                type: "danger",
+                buttons: [
+                    {
+                        text: "Batal",
+                        className: "flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 text-xs font-bold rounded-xl transition"
+                    },
+                    {
+                        text: "Ya, Hapus",
+                        className: "flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2 text-xs font-bold rounded-xl transition shadow-sm",
+                        action: async () => {
+                            setSkrinLoading(true, "Menghapus data di Google Sheets...");
+                            try {
+                                let response = await fetch(API_URL, {
+                                    method: "POST",
+                                    body: JSON.stringify({ action: "hapus_transaksi", sheetsLink: sessionUser.sheetsLink, txId: id })
+                                });
+                                let hasil = await response.json();
+                                setSkrinLoading(false);
 
-            setSkrinLoading(true, "Menghapus data di Google Sheets...");
-            try {
-                let response = await fetch(API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "hapus_transaksi", sheetsLink: sessionUser.sheetsLink, txId: id })
-                });
-                let hasil = await response.json();
-                setSkrinLoading(false);
-
-                if(hasil.success) {
-                    tunjukanToast(hasil.message, "success");
-                    document.getElementById("btnCariMutasi").click(); // Refresh mutasi otomatis
-                } else {
-                    tunjukanToast(hasil.message, "error");
-                }
-            } catch (err) {
-                setSkrinLoading(false);
-                tunjukanToast("Gagal menghapus.", "error");
-            }
+                                if(hasil.success) {
+                                    tunjukanToast(hasil.message, "success");
+                                    document.getElementById("btnCariMutasi").click(); // Refresh mutasi otomatis
+                                } else {
+                                    tunjukanToast(hasil.message, "error");
+                                }
+                            } catch (err) {
+                                setSkrinLoading(false);
+                                tunjukanToast("Gagal menghapus.", "error");
+                            }
+                        }
+                    }
+                ]
+            });
         }
 
         // --- FITUR PRE-RENDER DAN CETAK REKENING KORAN KERTAS A4 ---
         document.getElementById("btnCetakA4").addEventListener("click", () => {
-            if(dataMutasiCache.length === 0) return alert("Silakan klik 'Cari Data' terlebih dahulu untuk memuat data yang ingin dicetak.");
+            if(!dataMutasiCache || dataMutasiCache.length === 0) {
+                return tampilkanDialogKustom({
+                    title: "Data Kosong",
+                    message: "Silakan klik 'Cari Data' terlebih dahulu untuk memuat data yang ingin dicetak.",
+                    type: "warning"
+                });
+            }
 
             let tglMulai = document.getElementById("filterTglMulai").value;
             let tglSelesai = document.getElementById("filterTglSelesai").value;
@@ -784,7 +899,7 @@
             let sumMasuk = 0;
             let sumKeluar = 0;
 
-            // Cetak berurutan dari data terlama ke terbaru (Standar perbankan rekening koran asli)
+            // Cetak berurutan dari data terlama ke terbaru (Standar perbankan rekening koran asli & Sinkronisasi Mutasi Tetap Muncul)
             dataMutasiCache.forEach(tx => {
                 let tglFormat = new Date(tx.tanggal).toLocaleDateString("id-ID");
                 let cellMasuk = tx.jenis === "Masuk" ? `<b>Rp ${Number(tx.nominal).toLocaleString("id-ID")}</b>` : "-";
@@ -817,14 +932,14 @@
         // Jalankan Pengecekan Sesi pertama kali aplikasi dibuka
         window.onload = cekAlurAplikasiLanjutan;
 
-// Daftarkan Service Worker (sw.js) agar aplikasi sah menjadi PWA & bisa diinstal offline
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker 3D Creative Berhasil Didaftarkan!', reg))
-            .catch(err => console.log('Service Worker Gagal Didaftarkan:', err));
-    });
-}
+        // Daftarkan Service Worker (sw.js) agar aplikasi sah menjadi PWA & bisa diinstal offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker 3D Creative Berhasil Didaftarkan!', reg))
+                    .catch(err => console.log('Service Worker Gagal Didaftarkan:', err));
+            });
+        }
     </script>
 </body>
 </html>
