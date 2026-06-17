@@ -12,10 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* PERBAIKAN UTAMA: Manajemen visibility saat cetak agar tidak putih polos */
         @media print {
             body { background: white !important; color: black !important; }
-            main { display: none !important; } /* Sembunyikan seluruh interface aplikasi */
+            main { display: none !important; }
             #areaCetak { display: block !important; visibility: visible !important; position: relative; width: 100%; }
             #areaCetak * { visibility: visible !important; }
             .no-print { display: none !important; }
@@ -26,7 +25,7 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen flex flex-col hide-scrollbar">
 
-    <!-- BANNER PWA INSTALASI (POP-UP AWAL) -->
+    <!-- BANNER PWA INSTALASI -->
     <div id="pwaBanner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-blue-900 text-white p-4 rounded-2xl shadow-2xl z-50 flex items-center justify-between border border-blue-700 animate-bounce">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-wallet text-3xl text-yellow-400"></i>
@@ -50,7 +49,7 @@
         <p id="toastMessage" class="text-sm font-semibold"></p>
     </div>
 
-    <!-- MODAL POP-UP DIALOG KUSTOM (PENGGANTI CONFIRM & ALERT BROWSER) -->
+    <!-- MODAL POP-UP DIALOG KUSTOM -->
     <div id="modalDialogKustom" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-gray-100 text-center space-y-4 transform scale-95 transition-transform duration-200">
             <div id="dialogKustomIconBox" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl">
@@ -60,9 +59,7 @@
                 <h3 id="dialogKustomTitle" class="text-base font-black text-gray-800">Pemberitahuan</h3>
                 <p id="dialogKustomMessage" class="text-xs text-gray-500 mt-1.5 leading-relaxed"></p>
             </div>
-            <div id="dialogKustomActionBox" class="flex gap-3 pt-2">
-                <!-- Tombol dinamis diatur via JavaScript -->
-            </div>
+            <div id="dialogKustomActionBox" class="flex gap-3 pt-2"></div>
         </div>
     </div>
 
@@ -93,10 +90,15 @@
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 block mb-1">Password</label>
+                        <!-- FITUR BARU: Input Password + Ikon Mata Toggle -->
                         <div class="relative">
                             <i class="fa-solid fa-lock absolute left-3 top-3.5 text-gray-400 text-sm"></i>
-                            <input type="password" id="authPassword" placeholder="••••••••" class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition">
+                            <input type="password" id="authPassword" placeholder="••••••••" class="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition">
+                            <button type="button" onclick="toggleLihatPassword('authPassword', 'iconMataAuth')" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i id="iconMataAuth" class="fa-solid fa-eye text-sm"></i>
+                            </button>
                         </div>
+                        <p id="infoAturanPassword" class="hidden text-[10px] text-gray-400 mt-1 font-medium"><i class="fa-solid fa-circle-info"></i> Aturan: Password minimal harus terdiri dari <b>6 karakter</b>.</p>
                     </div>
 
                     <button id="btnSubmitAuth" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-md transition text-sm mt-2">Masuk</button>
@@ -145,7 +147,6 @@
 
         <!-- ================= HALAMAN 3: UTAMA (DASHBOARD M-BANKING) ================= -->
         <section id="pageDashboard" class="hidden flex-grow flex flex-col">
-            <!-- Header M-Banking Style -->
             <div class="bg-blue-900 text-white p-6 rounded-b-[2rem] shadow-md relative">
                 <div class="flex justify-between items-center mb-4">
                     <div>
@@ -155,14 +156,12 @@
                     <button id="btnLogout" class="w-8 h-8 bg-blue-800/60 rounded-xl flex items-center justify-center text-xs hover:bg-red-600 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </div>
                 
-                <!-- Widget Saldo Utama -->
                 <div class="bg-linear-to-br from-blue-950 to-blue-800 p-5 rounded-2xl border border-blue-700/50 shadow-inner mt-2">
                     <p class="text-xs text-blue-300 font-semibold tracking-wider uppercase">Total Saldo Anda</p>
                     <h3 id="txtTotalSaldo" class="text-2xl font-black tracking-tight mt-1 text-yellow-400">Rp 0</h3>
                 </div>
             </div>
 
-            <!-- Tombol Navigasi Menu Cepat -->
             <div class="px-6 -mt-3 grid grid-cols-2 gap-4 z-10">
                 <button onclick="bukaModalTransaksi('Masuk')" class="bg-emerald-500 hover:bg-emerald-600 text-white p-4 rounded-2xl shadow-lg transition flex items-center justify-center gap-3 font-bold text-sm">
                     <i class="fa-solid fa-circle-arrow-down text-xl"></i> Catat Masuk
@@ -172,14 +171,12 @@
                 </button>
             </div>
 
-            <!-- Review Transaksi Terkini -->
             <div class="p-6 flex-grow flex flex-col">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="font-black text-blue-900 text-sm uppercase tracking-wider">Histori Terkini</h4>
                     <p class="text-[10px] text-gray-400 font-medium">*Menampilkan data hari ini</p>
                 </div>
                 
-                <!-- List Box Transaksi -->
                 <div id="containerHistoriTerkini" class="space-y-3 flex-grow overflow-y-auto max-h-[280px] pr-1 hide-scrollbar text-center text-xs text-gray-400 py-6">
                     Belum ada transaksi hari ini atau data belum ditarik.
                 </div>
@@ -190,7 +187,6 @@
         <section id="pageMutasi" class="hidden p-6 flex-grow flex flex-col">
             <h2 class="text-lg font-black text-blue-900 uppercase tracking-wider mb-4"><i class="fa-solid fa-clock-rotate-left"></i> Mutasi Rekapan</h2>
             
-            <!-- Filter Rentang Tanggal -->
             <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-3 mb-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -208,7 +204,6 @@
                 </div>
             </div>
 
-            <!-- Ringkasan Filter Pencarian -->
             <div class="grid grid-cols-2 gap-2 mb-4 text-xs">
                 <div class="bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl text-center">
                     <p class="text-[10px] text-emerald-700 font-bold">Total Masuk</p>
@@ -220,9 +215,42 @@
                 </div>
             </div>
 
-            <!-- Tabel / Daftar Mutasi Utama -->
             <div class="flex-grow overflow-y-auto max-h-[320px] pr-1 hide-scrollbar" id="containerTabelMutasi">
                 <p class="text-center text-xs text-gray-400 py-10">Silakan tentukan tanggal dan klik Cari Data.</p>
+            </div>
+        </section>
+
+        <!-- ================= HALAMAN BARU 5: UTILITAS PENGATURAN & GANTI PASSWORD ================= -->
+        <section id="pagePengaturan" class="hidden p-6 flex-grow flex flex-col justify-center">
+            <h2 class="text-lg font-black text-blue-900 uppercase tracking-wider mb-2"><i class="fa-solid fa-key"></i> Keamanan Akun</h2>
+            <p class="text-xs text-gray-400 mb-6 font-medium">Silakan kelola pembaharuan kata sandi berkala Anda secara mandiri di sini.</p>
+
+            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-4">
+                <h3 class="text-sm font-bold text-gray-700 border-b border-gray-200 pb-2 mb-2"><i class="fa-solid fa-shield-halved text-blue-900"></i> Form Ganti Password</h3>
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-500 block mb-1">Password Baru</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock-open absolute left-3 top-3.5 text-gray-400 text-sm"></i>
+                        <input type="password" id="newPasswordInput" placeholder="Minimal 6 Karakter" class="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition">
+                        <button type="button" onclick="toggleLihatPassword('newPasswordInput', 'iconMataNew')" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <i id="iconMataNew" class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-500 block mb-1">Konfirmasi Password Baru</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-circle-check absolute left-3 top-3.5 text-gray-400 text-sm"></i>
+                        <input type="password" id="confirmPasswordInput" placeholder="Ulangi Password Baru" class="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition">
+                        <button type="button" onclick="toggleLihatPassword('confirmPasswordInput', 'iconMataConfirm')" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <i id="iconMataConfirm" class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="btnProsesGantiPassword" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-md transition text-sm mt-2">Update Password Baru</button>
             </div>
         </section>
 
@@ -284,6 +312,11 @@
                 <i class="fa-solid fa-list-ul text-lg"></i>
                 <span class="text-[10px] font-bold">Mutasi</span>
             </button>
+            <!-- FITUR BARU: Tombol Menu Pengaturan / Ganti Password -->
+            <button onclick="pindahHalaman('pengaturan')" id="navBtnPengaturan" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-blue-900 transition">
+                <i class="fa-solid fa-gear text-lg"></i>
+                <span class="text-[10px] font-bold">Sandi</span>
+            </button>
         </nav>
 
         <!-- ================= FOOTER UTAMA ================= -->
@@ -293,7 +326,7 @@
 
     </main>
 
-    <!-- AREA STRUKTUR CETAK REKENING KORAN A4 (DI-RENDER KHUSUS SAAT PRINT JALAN) -->
+    <!-- AREA STRUKTUR CETAK REKENING KORAN A4 -->
     <div id="areaCetak" class="hidden p-8 text-black bg-white">
         <div class="text-center border-b-2 border-gray-800 pb-4 mb-6">
             <h1 class="text-2xl font-bold uppercase tracking-wide">REKENING KORAN - CATAT KAS</h1>
@@ -320,9 +353,7 @@
                     <th class="py-2 px-1 font-bold pl-3">Keterangan Detail</th>
                 </tr>
             </thead>
-            <tbody id="bodyTabelPrint" class="divide-y divide-gray-200">
-                <!-- Data Terisi Lewat Script -->
-            </tbody>
+            <tbody id="bodyTabelPrint" class="divide-y divide-gray-200"></tbody>
         </table>
         <div class="mt-6 border-t border-gray-400 pt-4 flex justify-end">
             <div class="w-64 text-xs space-y-1">
@@ -343,7 +374,6 @@
         let deferredPrompt;
         let dataMutasiCache = [];
 
-        // --- SISTEM DETEKSI DAN TOMBOL INSTALASI PWA ---
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -361,7 +391,6 @@
             }
         });
 
-        // --- ATUR FORMAT RUPIAH OTOMATIS SAAT KETIK NOMINAL ---
         const inputNominal = document.getElementById("txNominal");
         inputNominal.addEventListener("input", function() {
             let value = this.value.replace(/[^0-9]/g, "");
@@ -372,13 +401,27 @@
             }
         });
 
-        // --- ROUTING / NAVIGASI HALAMAN INTERN ---
+        // --- FITUR BARU: Toggle Lihat/Sembunyikan Input Password ---
+        function toggleLihatPassword(inputId, iconId) {
+            const inputElement = document.getElementById(inputId);
+            const iconElement = document.getElementById(iconId);
+            if (inputElement.type === "password") {
+                inputElement.type = "text";
+                iconElement.className = "fa-solid fa-eye-slash text-sm";
+            } else {
+                inputElement.type = "password";
+                iconElement.className = "fa-solid fa-eye text-sm";
+            }
+        }
+
         function pindahHalaman(target) {
             document.getElementById("pageDashboard").classList.add("hidden");
             document.getElementById("pageMutasi").classList.add("hidden");
+            document.getElementById("pagePengaturan").classList.add("hidden"); // Baru
             
             document.getElementById("navBtnDashboard").className = "flex flex-col items-center gap-0.5 text-gray-400";
             document.getElementById("navBtnMutasi").className = "flex flex-col items-center gap-0.5 text-gray-400";
+            document.getElementById("navBtnPengaturan").className = "flex flex-col items-center gap-0.5 text-gray-400"; // Baru
 
             if (target === 'dashboard') {
                 document.getElementById("pageDashboard").classList.remove("hidden");
@@ -391,17 +434,20 @@
                 document.getElementById("filterTglSelesai").value = hariIni;
                 let awalBulan = hariIni.substring(0,8) + "01";
                 document.getElementById("filterTglMulai").value = awalBulan;
+            } else if (target === 'pengaturan') {
+                document.getElementById("pagePengaturan").classList.remove("hidden");
+                document.getElementById("navBtnPengaturan").className = "flex flex-col items-center gap-0.5 text-blue-900";
+                document.getElementById("newPasswordInput").value = "";
+                document.getElementById("confirmPasswordInput").value = "";
             }
         }
 
-        // --- LOADING & TOAST CONTROLLER ---
         function setSkrinLoading(show, teks = "Memproses data...") {
             const overlay = document.getElementById("loadingOverlay");
             document.getElementById("loadingText").innerText = teks;
             show ? overlay.classList.remove("hidden") : overlay.classList.add("hidden");
         }
 
-        // --- ENGINE SISTEM MODAL DIALOG KUSTOM ---
         function tampilkanDialogKustom(opsi) {
             const modal = document.getElementById("modalDialogKustom");
             const iconBox = document.getElementById("dialogKustomIconBox");
@@ -469,7 +515,6 @@
             }, 3500);
         }
 
-        // --- MODAL CONTROLLER ---
         function bukaModalTransaksi(jenis, editId = null, dataLama = null) {
             document.getElementById("txJenis").value = jenis;
             document.getElementById("txIdEdit").value = editId || "";
@@ -504,12 +549,15 @@
         // --- AUTH CONTROLLER ---
         let currentAuthMode = "login";
         document.getElementById("btnSwitchAuth").addEventListener("click", () => {
+            // Reset input password info aturan visibility
+            document.getElementById("infoAturanPassword").classList.add("hidden");
             if(currentAuthMode === "login") {
                 currentAuthMode = "register";
                 document.getElementById("authTitle").innerText = "Daftar Akun Baru";
                 document.getElementById("btnSubmitAuth").innerText = "Daftar";
                 document.getElementById("authSwitchText").innerText = "Sudah punya akun?";
                 document.getElementById("btnSwitchAuth").innerText = "Masuk Di Sini";
+                document.getElementById("infoAturanPassword").classList.remove("hidden"); // Tampilkan info aturan saat daftar
             } else {
                 currentAuthMode = "login";
                 document.getElementById("authTitle").innerText = "Masuk ke Akun";
@@ -521,7 +569,7 @@
 
         document.getElementById("btnLupaPassword").addEventListener("click", () => {
             let emailInp = document.getElementById("authEmail").value.trim();
-            let pesan = `Halo Admin 3D Creative, saya lupa password akun Catat Kas saya. Mohon bantuan reset password untuk akun Email: ${emailInp || '[Isi Email Anda]'}`;
+            let pesan = `Halo Admin 3D Creative, saya lupa password akun Catat Kas saya. Mohon bantuan reset password sementara via Cara 1 untuk akun Email: ${emailInp || '[Isi Email Anda]'}`;
             window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(pesan)}`, '_blank');
         });
 
@@ -530,6 +578,15 @@
             let password = document.getElementById("authPassword").value;
 
             if(!email || !password) return tunjukanToast("Email dan Password wajib diisi!", "error");
+            
+            // FITUR BARU: Validasi Aturan panjang password saat Registrasi / Login
+            if(password.length < 6) {
+                return tampilkanDialogKustom({
+                    title: "Password Terlalu Pendek",
+                    message: "Berdasarkan standar keamanan aplikasi, kata sandi minimal harus 6 karakter.",
+                    type: "warning"
+                });
+            }
 
             setSkrinLoading(true, currentAuthMode === "login" ? "Memverifikasi akun..." : "Mendaftarkan akun baru...");
 
@@ -573,6 +630,51 @@
             }
         });
 
+        // --- FITUR BARU: Proses Ganti Password Mandiri Dari Dalam Aplikasi ---
+        document.getElementById("btnProsesGantiPassword").addEventListener("click", async () => {
+            let newPwd = document.getElementById("newPasswordInput").value;
+            let confPwd = document.getElementById("confirmPasswordInput").value;
+
+            if(!newPwd || !confPwd) return tunjukanToast("Kedua form password wajib diisi!", "error");
+            if(newPwd.length < 6) return tunjukanToast("Password baru minimal 6 karakter!", "error");
+            if(newPwd !== confPwd) return tunjukanToast("Konfirmasi password tidak cocok!", "error");
+
+            setSkrinLoading(true, "Memperbarui password enkripsi baru Anda di database...");
+
+            try {
+                let response = await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ 
+                        action: "ganti_password", 
+                        email: sessionUser.email, 
+                        passwordBaru: newPwd 
+                    })
+                });
+                let hasil = await response.json();
+                setSkrinLoading(false);
+
+                if(hasil.success) {
+                    tampilkanDialogKustom({
+                        title: "Sukses Ganti Password",
+                        message: "Kata sandi Anda berhasil diperbarui. Silakan login kembali demi validasi keamanan sesi.",
+                        type: "success",
+                        buttons: [
+                            { text: "Login Kembali", className: "w-full bg-blue-900 text-white py-2 text-xs font-bold rounded-xl", action: () => { 
+                                localStorage.removeItem("catatkas_session"); 
+                                sessionUser = null; 
+                                cekAlurAplikasiLanjutan(); 
+                            }}
+                        ]
+                    });
+                } else {
+                    tunjukanToast(hasil.message, "error");
+                }
+            } catch (err) {
+                setSkrinLoading(false);
+                tunjukanToast("Koneksi gagal memperbarui kata sandi.", "error");
+            }
+        });
+
         document.getElementById("btnSaveSheetsLink").addEventListener("click", async () => {
             let link = document.getElementById("inputSheetsLink").value.trim();
             if(!link) return tunjukanToast("Silakan masukkan ID atau Link Google Sheets Anda!", "error");
@@ -605,6 +707,7 @@
             document.getElementById("pageAuth").classList.add("hidden");
             document.getElementById("pageSetupSheets").classList.add("hidden");
             document.getElementById("pageDashboard").classList.add("hidden");
+            document.getElementById("pagePengaturan").classList.add("hidden"); // Baru
             document.getElementById("navBawah").classList.add("hidden");
 
             if(!sessionUser) {
@@ -721,7 +824,6 @@
             }
         }
 
-        // --- AMBIL DATA MUTASI REKAPAN ---
         document.getElementById("btnCariMutasi").addEventListener("click", async () => {
             let tglMulai = document.getElementById("filterTglMulai").value;
             let tglSelesai = document.getElementById("filterTglSelesai").value;
@@ -822,7 +924,6 @@
             });
         }
 
-        // --- SISTEM RENDER ELEMEN PRINT PREVIEW YANG VALID ---
         document.getElementById("btnCetakA4").addEventListener("click", () => {
             if(!dataMutasiCache || dataMutasiCache.length === 0) {
                 return tampilkanDialogKustom({
@@ -869,7 +970,6 @@
             document.getElementById("printTotalKeluar").innerText = "Rp " + sumKeluar.toLocaleString("id-ID");
             document.getElementById("printSaldoAkhir").innerText = "Rp " + (sumMasuk - sumKeluar).toLocaleString("id-ID");
 
-            // Eksekusi print bawaan browser
             window.print();
         });
 
